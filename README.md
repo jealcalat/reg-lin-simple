@@ -1,2 +1,2 @@
 # reg-lin-simple
-Regresión lineal simple paso a paso (+ código R y LaTeX)
+Explicación paso a paso y fundamentación matemática de la regresión lineal simple (+ código de ejemplo en R y LaTeX).
