@@ -1,0 +1,455 @@
+\documentclass[letterpaper,12pt]{article}
+
+
+\usepackage[spanish]{babel}
+\selectlanguage{spanish}
+\decimalpoint % Para usar el punto como decimal
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc}
+\usepackage{caption}
+\usepackage{cancel} %Para cancelar factores de fracciones
+\captionsetup[table]{name=Tabla} % Para cambiar 'Cuadro' por 'Tabla'
+\usepackage{graphicx} %para figuras
+\usepackage{hyperref} %Para referencias a tablas y figuras
+\usepackage{soul}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{courier}
+\usepackage[numbers]{natbib}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{courier}
+
+\usepackage{listings} % Para código de R
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\footnotesize\ttfamily,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+\lstset{style=mystyle}
+% Definir nuevos comandos para varianza y covarianza
+\DeclareMathOperator{\Var}{\mathrm{Var}}
+
+\DeclareMathOperator{\Cov}{\mathrm{Cov}}
+
+\title{Regresión lineal simple\\ 
+	\normalsize(+ ejemplo y código en R)}
+\author{J.E. Alcal\'a\\
+	    Centro de Estudios e Investigaciones en Comportamiento\\
+		Universidad de Guadalajara}
+\date{30.04.2018}
+
+
+
+\begin{document}
+	\maketitle	
+	
+\section*{Ejemplo de diapositivas\\ 
+	Propelente}
+
+\begin{center}
+	\begin{table}[htpb] 
+	\caption{Datos de propelente}
+	\label{tabla_1}
+		\begin{tabular}{cc}
+			\begin{minipage}{.5\linewidth}
+				\centering
+				\begin{tabular}{ccc}
+		\hline \rowcolor[HTML]{EFEFEF} 
+		Observación & y & x \\ \hline
+		1 & 2158.7 & 15.5 \\
+		2 & 1678.15 & 23.75 \\
+		3 & 2316 & 8 \\
+		4 & 2061.3 & 17 \\
+		5 & 2207.5 & 5.5 \\
+		6 & 1708.3 & 19 \\
+		7 & 1784.7 & 24 \\
+		8 & 2575 & 2.5 \\
+		9 & 2357.9 & 7.5 \\
+		10 & 2256.7 & 11 \\\hline
+				\end{tabular}
+		\end{minipage} &
+
+		\begin{minipage}{.5\linewidth}
+	\centering
+	\begin{tabular}{ccc}
+		\hline \rowcolor[HTML]{EFEFEF} 
+		Observación & y & x \\\hline
+		11 & 2165.2 & 13 \\
+		12 & 2399.55 & 3.75 \\
+		13 & 1779.8 & 25 \\
+		14 & 2336.75 & 9.75 \\
+		15 & 1765.3 & 22 \\
+		16 & 2053.5 & 18 \\
+		17 & 2414.4 & 6 \\
+		18 & 2200.5 & 12.5 \\
+		19 & 2654.2 & 2 \\
+		20 & 1753.7 & 21.5\\ \hline
+		\end{tabular}
+	\end{minipage} 
+	\end{tabular}
+ \end{table}
+\end{center}
+
+En la tabla ~\ref{tabla_1} se muestran los datos de la resistencia al corte (y) como función de la edad del propelente (x). En un gráfico de dispersión se puede observar qué tipo de relación podría existir entre ambas variables (Figura ~\ref{fig_1})
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.7]{xy_plot_t11.pdf}
+	\caption{Resistencia al corte como función de la edad del propelente.}
+	\label{fig:fig_1}
+\end{figure}
+
+\section*{Preliminares}
+
+La regresión lineal simple es un método que usa la relación estadística entre dos variables cuantitativas en la que una variable, la variable de respuesta (o variable dependiente) puede ser predicha a partir de otra variable (la variable predictora o independiente). 
+
+Sean $(x_1,y_1),(x_2,y_2),...,(x_n,y_n)$ $n$ pares de observaciones tales que $y_i$ es el valor observado (o el valor de la variable de respuesta) de una variable aleatoria $Y_i$. Asumimos que existen constantes $\beta_0$ y $\beta_1 \neq 0$ tales que $Y_i$ sea una combinación lineal de $X_i$ con la siguiente forma
+
+\begin{equation}
+Y_i = \beta_0 + \beta_1X_i + \epsilon_i
+\label{eq:ecu_1}
+\end{equation}
+
+
+Donde $\epsilon_1,\epsilon_2,...,\epsilon_n$ $\sim N(\mu = 0,\sigma^2)$ y $\Cov(\epsilon_i,\epsilon_j) = 0$, es decir, los errores no están correlacionados entre sí. La ecuación ~\ref{eq:ecu_1} se dice que lineal en los parámetros $\beta_0,\beta_1$, y es regresión simple dado que solo existe una variable $X$ que predice la respuesta en $Y$.
+
+En su núcleo, la regresión lineal se trata de un problema de aproximación \citep[cáp. 8]{burden2015}. Dado que asumimos que $\mathbf{E[\epsilon]} = 0$, el valor esperado del error, la ecuación ~\ref{eq:ecu_1} se reduce a $\beta_0 + \beta_1 x_i$. El problema de la regresión lineal simple se reduce a encontrar la mejor aproximación lineal que minimice la diferencia $y_i - (\beta_0 + \beta_1 x_i)$. La mejor forma de expresar las diferencias es elevándolas al cuadrado:
+
+\begin{itemize}
+	\item Simplemente usando las diferencias los valores negativos y positivos se podrían cancelar.
+	\item Usando valores absolutos no le daría el suficiente peso a valores alejados de la línea (valores atípicos).
+	\item Las diferencias elevadas al cuadrado son diferenciables, lo cuál es bueno si se busca una función que las minimice. 
+\end{itemize}
+
+Con base en esto se usa el método de mínimos cuadrados, en los cuáles se intentan obtener $\beta_0$ y $\beta_1 \neq 0$ tales que se minimicen la función
+
+\begin{equation}
+S(\beta_0,\beta_1) = \sum_{i=1}^{n}[y_i - (\beta_0 + \beta_1 x_i)]^2
+\label{eq:ecu_2}
+\end{equation}
+con respecto a los parámetros $\beta_0,\beta_1$. Para encontrar tales mínimos, necesitamos las derivadas parciales con respecto a $\beta_0,\beta_1$ que minimicen $S$\\
+
+\[\frac{\partial S}{\partial \beta_0} = 0 \text{ y } \frac{\partial S}{\partial \beta_1} = 0\]
+esto es,
+
+\begin{equation}
+	0 = \frac{\partial}{\partial \beta_0}\sum_{i=1}^{n}[y_i - (\beta_0 + \beta_1 x_i)]^2 = -2 \sum_{i=1}^{n}(y_i-\beta_1x_i-\beta_0)
+	\label{eq:ecu_3}
+\end{equation}
+y,
+
+\begin{equation}
+0 = \frac{\partial}{\partial \beta_1}\sum_{i=1}^{n}[y_i - (\beta_0 + \beta_1 x_i)]^2 = -2 \sum_{i=1}^{n}(y_i-\beta_1x_i-\beta_0)(x_i)
+\label{eq:ecu_4}
+\end{equation}
+
+Las ecuaciones ~\ref{eq:ecu_3} y ~\ref{eq:ecu_4} se simplifican en las llamadas \textbf{ecuaciones normales}, donde la palabra \textbf{normal} significa \textbf{perpendicular}. Dado que estamos estimando a $\beta_0,\beta_1$, denotamos a estos estimadores como $\hat{\beta_0},\hat{\beta_1}$
+
+\begin{equation}
+n\hat{\beta_0} + \hat{\beta_1}\sum_{i=1}^{n}x_i = \sum_{i=1}^{n}y_i 
+\label{eq:ecu_5}
+\end{equation}
+
+y
+
+\begin{equation}
+\hat{\beta_0}\sum_{i=1}^{n}x_i + \hat{\beta_1}\sum_{i=1}^{n}x_i^2 = \sum_{i=1}^{n}x_i y_i
+\label{eq:ecu_6}
+\end{equation}
+
+La solución al sistema de ~\ref{eq:ecu_5} y ~\ref{eq:ecu_6} es:
+
+\begin{equation}
+\hat{\beta_0} = \frac{1}{n}\sum_{i=1}^{n}y_i - \hat{\beta_1}\frac{1}{n}\sum_{i=1}^{n}x_i
+\label{eq:ecu_7}
+\end{equation}
+
+\begin{equation}
+\hat{\beta_1} = \frac{n\sum_{i=1}^{n}x_iy_i - \sum_{i=1}^{n}x_i\sum_{i=1}^{n}y_i }{n(\sum_{i=1}^{n} x_i^2) - (\sum_{i=1}^{n}x_i)^2}
+\label{eq:ecu_8}
+\end{equation}
+
+Nótese que la ecuación ~\ref{eq:ecu_7} se puede expresar como $\hat{\beta_0} = \bar{y}-\hat{\beta_1}\bar{x}$. También, nótese que dividiendo ~\ref{eq:ecu_8} por $n$ nos da:
+
+\begin{equation}
+\hat{\beta_1} = \frac{\sum_{i=1}^{n}x_iy_i - \bar{x} \bar{y}}{(\sum_{i=1}^{n} x_i^2) - (\bar{x})^2} = \frac{\Cov(x,y)}{\Var(x)}
+\label{eq:ecu_8}
+\end{equation}
+
+Por ~\ref{eq:ecu_7} sabemos que el valor de $\hat{\beta_0}$ es igual al valor esperado de $y_i$ cuando $x_i = 0$, por lo que se le suele llamar \textit{intercepto} u \textit{ordenada en el origen}, sin embargo, si $x_i$ nunca es 0, este valor no tiene una interpretación intrínseca. 
+
+\section*{Regresión con datos de propelente}
+
+\[\Cov(x,y) = -2163.82 \text{ y } \Var(x) = 58.2\] Por lo tanto, $\hat{\beta_1} =-2163.82/58.2 = -37.15$. Además, $\mathbf{E[y]} = 2131.3$ y $\mathbf{E[x]} =13.36$. Por lo tanto, $\hat{\beta_0} =2131.13 + 37.15*13.36 = 2627.8$. En notación matricial, nuestra ecuación de regresión quedaría:
+
+\[
+\hat{\textbf{Y}} = \text{\textbf{X}}
+\begin{bmatrix}
+\hat{\beta_0} \\
+\hat{\beta_1}
+\end{bmatrix} = \text{\textbf{X}}
+\begin{bmatrix}
+2627.8 \\
+-37.15
+\end{bmatrix}
+\]
+
+Con la cual podríamos obtener los valores de $\hat{\textbf{Y}}$. Con estos valores podemos ajustar una línea a nuestros datos, calcular el error y medir otros estadísticos. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.7]{reg_fitted.pdf}
+	\caption{Ajuste de línea de regresión a partir de los parámetros encontrados por el método de mínimos cuadrados. La línea azul representa la recta de mejor ajuste minimizando la distancia entre los puntos grises y los azules. Las líneas verticales representan el error $\epsilon_i = y_i - \hat{y}$}. 
+	\label{fig_2}
+\end{figure}
+
+Después de obtener el modelo de nuestros datos, debemos preguntarnos lo siguiente:
+
+\begin{itemize}
+	\item ¿Qué tan bueno es el ajuste de esta ecuación a los datos (bondad de ajuste)?
+	\item ¿Es el modelo un buen predictor? Es decir, ¿podríamos obtener valores confiables de $y$ con nuevos valores de $x$?
+	\item ¿Se violan los supuestos básicos de la regresión? Tales como la varianza constante, $\epsilon_i$ no correlacionados entre sí, y $\epsilon_i$ $\sim N(\mu = 0,\sigma^2)$
+\end{itemize}
+
+Para respondernos lo anterior necesitamos un estimador de $\sigma^2$, que denotamos por $\hat{\sigma}^2$ y estimar un intervalo de confianza. $\hat{\sigma}^2 = SS_{res}/(n-2)$ es la suma de cuadrados residuales promediada entre los grados de libertad (n-2 parámetros, que lo vuelven un estimador robusto).
+
+\begin{equation}
+ \hat{\sigma}^2 = \frac{\sum_{i=1}^{n}(y_i - (\hat{\beta_0}+\hat{\beta_1}x_i))}{n-2} = \frac{\sum_{i=1}^{n}(y_i - \hat{y_i})^2}{n-2}
+\end{equation}
+
+A partir de lo cual obtenemos $\hat{\sigma}^2 = 166253.7/(20-2) = 9236.31$ y el error estándar de la estimación de la regresión, $\hat{\sigma} = \sqrt{9236.3} = 96.105$
+
+Las varianzas de los estimadores se obtienen con
+
+\begin{equation}
+	\Var(\hat{\beta_1})=\frac{\hat{\sigma}^2}{S_{xx}}
+\end{equation}
+y
+\begin{equation}
+	\Var(\hat{\beta_0}) = \hat{\sigma}^2\bigg(\frac{1}{n} + \frac{\bar{x}^2}{S_{xx}}\bigg)
+\end{equation}
+
+Así tenemos:\\ $\Var(\hat{\beta_1})= \frac{9236.31}{1106.56} = 8.34$ y $\hat{\sigma}_{\hat{\beta}_1}=2.88$;\\ $\Var(\hat{\beta_0})=9236.31\bigg(\frac{1}{20} + \frac{13.36^2}{1106.56}\bigg) = 1952.2$ y  $\hat{\sigma}_{\hat{\beta}_0}=44.18$.
+
+Estos valores calculados nos servirán para probar si los valores de los parámetros son iguales a una constante determinada. Generalmente, para la pendiente y el intercepto, o sus estimados $\hat{\beta}_0 \text{y}\hat{\beta}_1$ se desea saber si son significativamente diferentes de 0 (si la pendiente es 0, implicaría que no hay relación lineal entre las variables, y si el intercepto es 0).
+
+\[
+\begin{aligned}
+H_0: \beta_0 = 0,\; H_a: \beta_0 \neq 0\; \text{para $\beta_0$}\\\hline
+H_0: \beta_1 = 0,\; H_a: \beta_1 \neq 0\; \text{para $\beta_1$}
+\end{aligned}
+\]
+
+La forma general de probar la hipótesis concerniente a la diferencia $\beta_j = \beta_{H_0}$ es:
+
+\begin{equation}
+	t_{\beta_j} = \frac{\hat{\beta}_j-\beta_{H_0}}{\sqrt{\hat{\sigma}_{\hat{\beta}_j}^2}}
+\end{equation}
+
+A partir de lo cual obtenemos:
+\[
+\begin{aligned}
+t_{\beta_0} = 59.48\; \text{y} \\
+t_{\beta_1} = -12.86
+\end{aligned}
+\]
+
+El valor teórico para la distribución de t-Student es $t_{\alpha/2,n-2} = t_{0.05/2,18 = 2.75}$. Sabemos que si al nivel de significancia de $\alpha = 0.05$ si $|t_{\beta_j}| > t_{0.05/2,18 = 2.75}$ podemos rechazar $H_0$. Dado que 59.48 $>$ 2.75 para $\beta_0$ y $|-12.86|>2.75$ para $\beta_1$ en ambos casos decimos que son estadísticamente diferentes de 0 a un nivel de significancia de 0.05. Podemos computar el valor $p$, que es una \textit{densidad} \footnote{Es decir, es la integral de la función de densidad de $t-Student$ en la región de confianza, y por lo tanto es un área.} de probabilidad condicional de la siguiente forma $p(t_{\beta_{j}}> t_{\alpha/2,n-2}|H_0)$, con lo que obtenemos: $p = 1.64e-10$ para $t_{\beta_1}$ y $p =4.063559e-22$ para $t_{\beta_0}$. 
+
+Ahora calculamos la F de Fisher para probar la significancia del modelo para ajustar los datos. Recordemos que el estadístico de Fisher se define como
+
+
+\[
+F_0 = MS_R/MS_{res},\;\; \text{donde $MS_i$ hace referencia a la suma cuadrática media}
+\]
+
+$SS_R = \hat{\beta}_1S_{xy}$, $SS_{res} = SS_T - \hat{\beta}_1S_{xy}$ con gradis de libertad de 1 y $n-2$ respectivamente. A partir de esto, tenemos una $F$ de Fisher de $1527334.9/9244.59 = 165$. Sabemos que la $F$ es significativa si $F_0 = F_{\alpha,n-2}$, cuyo valor es $F_{0.05,18}=4.14$, por lo tanto $165.21>4.14$ y concluimos que el modelo es significativo. 
+
+Por último, calculamos el coeficiente de determinación, que nos dice la varianza explicada por el modelo. Se calcula de la siguiente manera:
+
+\begin{equation}
+R^2 = \frac{SS_R}{SS_T} = 1 - \frac{SS_{res}}{SS_T} 
+\end{equation}
+
+Con lo cual obtenemos $R^2 = 1527334.95/1693737.6 = 0.901$, es decir, nuestro modelo de regresión explica el 90.18 \% de la varianza. 
+
+Por último, podemos calcular los intervalos de confianza para nuestra regresión. Estos se calculan mediante $\hat{y}\pm t_{\beta_1}*\Var(\hat{\beta_1})$. Con esto, podemos construir un gráfico como el de la Figura~\ref{fig_3}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.7]{reg_ci_pi.pdf}
+	\caption{Regresión mostrando los intervalos de confianza (líneas azules) y de predicción (líneas naranjas)}. 
+	\label{fig_3}
+\end{figure}
+
+
+\section*{Apéndice}
+
+\subsection*{Supuestos de la regresión lineal}
+
+\begin{enumerate}
+	\item $\mathbf{E[\epsilon_i] = 0}$ para todo $i=1,2,...,n$ o equivalentemente, $\mathbf{E[y_i]}=\hat{\beta_0} + \hat{\beta_1}x_i$.
+	\item $\Var(\epsilon_i)=\sigma^2$ para todo $i=1,2,...,n$ o equivalentemente, $\Var[y_i]=\sigma^2$.
+	\item $\Cov(\epsilon_i,\epsilon_j)=0$ para todo $i\neq j$, o equivalentemente, $\Cov(y_i,y_j)=0$.
+
+\end{enumerate}
+
+El primer supuesto implica que $y_i$ depende solo de $x_i$ y el resto de la variación es aleatoria. El segundo supuesto implica que la varianza de $\epsilon$ o $y$ no depende de los valores de $x_i$. Este supuesto se conoce comúnmente como supuesto de \textit{homocedasticidad} o de \textit{varianza homogénea}. El tercer supuesto implica que que los $i$-ésimos $\epsilon$ (o $y$) no están correlacionados unos con otros. 
+
+\subsection*{Código de R}
+
+\begin{lstlisting}[language=R]
+# Regresion lineal - Metodos estadisticos
+# Set de problema de propelente
+
+y = c(2158.7,1678.15,2316,2061.3,2207.5,1708.3,1784.7,
+	2575,2357.9,2256.7,2165.2,2399.55,1779.8,2336.75,
+	1765.3,2053.5,2414.4,2200.5,2654.2,1753.7)
+x = c(15.5,23.75,8,17,5.5,19,24,2.5,7.5,11,13,3.75,
+	25,9.75,22,18,6,12.5,2,21.5)
+
+# Comandos y parametros para guardar graficos
+pdf("xy_plot_t11.pdf",width = 4,height = 3)
+par(tcl = 2, mgp=c(1, 0.1, 0),mar=c(2,2,1,1))
+plot(x,y, pch = 21,col = "black", bg = "grey",tck=0.01,
+cex =1.3, cex.lab=1.3,cex.axis=1.1)
+# Marcas de los ejes derecha y arriba
+axis(side = 3,tck=0.01,labels = FALSE)
+axis(side = 4,tck=0.01,labels = FALSE)
+dev.off()
+
+ beta_0 y beta_1 con ecuacion normal
+ # Primero necesitamos la matriz de diseno, X
+ # Con 1s en una columna y x en la segunda
+ 
+ X = matrix(c(rep(1,length(x)),x), ncol = 2)
+ 
+ # la multiplicacion de X'X da como resultado la matriz
+ # |   n       Sigma x_i| 
+ # |Sigma x_i  Sigma x^2|
+ 
+ t(X) %*% X 
+ 
+ # La ecuacion normal en forma matricial es
+ # betas = inv(X'X)X'Y : la inversa del producto matricial de X y X
+ # por el producto matricial de X y y
+ 
+ betas = solve(t(X) %*% X) %*% (t(X) %*% y)
+ 
+ betas
+ 
+ # lm arroja el mismo resultado
+ 
+ coef(lm_model <- lm(y ~ x,data = df_reg))
+ 
+ # Valores ajustados con modelo de ecuacion normal
+ 
+ fitted_y = betas[1] + betas[2] * x
+ 
+ pdf("reg_fitted.pdf",width=6,height = 4)
+ par(tcl = 2, mgp=c(1, 0.1, 0),mar=c(2,2,1,1))
+ plot(x,y,pch = 21,col = "black", bg = "grey",
+ tck=0.01,cex.lab=1.4,cex.axis=1, cex = 1.5)
+ lines(x,fitted_y)
+ points(x,fitted_y,pch = 21, col = "blue",bg = "lightblue")
+ segments(x0=x,x1=x,y0=y,y1=fitted_y, col = "darkblue")
+ text(x=20,y=2400,substitute(
+ paste("y = ",beta_0," ", beta_1, "x"),
+ list(beta_0 = signif(betas[1],5),beta_1 = signif(betas[2],5))
+ ),family = "serif", cex = 1.2)
+ dev.off()
+ 
+ # Intervalos de confianza y prediccion
+ 
+ # conjunto de x nuevo
+ new_x = 1:max(x)
+ 
+ pdf("reg_ci_pi.pdf",width=6,height = 4, family = "serif")
+ par(tcl = 2, mgp=c(1.5, 0.2, 0),mar=c(2.5,2.5,1,1))
+ plot(x,y,pch = 21,col = "black", bg = "grey",
+ tck=0.01,cex.lab=1.4,cex.axis=1, cex = 1.5)
+ abline(lm_model, col="darkblue")
+ axis(side = 3,tck=0.01,labels = FALSE)
+ axis(side = 4,tck=0.01,labels = FALSE)
+ conf_interval <- predict(lm_model, newdata=data.frame(x=new_x), interval="confidence",
+ level = 0.95)
+ lines(new_x, conf_interval[,2], col="blue", lty=2)
+ lines(new_x, conf_interval[,3], col="blue", lty=2)
+ 
+ pred_interval <- predict(lm_model, newdata=data.frame(x=new_x), interval="prediction",
+ level = 0.95)
+ lines(new_x, pred_interval[,2], col="orange", lty=2)
+ lines(new_x, pred_interval[,3], col="orange", lty=2)
+ dev.off()
+ 
+ # Manualmente se pueden calcular todos los valores de t y p-value
+ # t value
+
+ SSres = sum((y - fitted_y)^2)
+
+ # La varianza del error es SSres/(n-2)
+ n = length(y)
+ sigma_err  = SSres/(n - 2)
+
+ # La varianza del beta_1 (slope) es
+
+ var_slope = sigma_err/Sxx
+
+ # del intercepto
+
+ var_intercept = sigma_err*(1/n + (mean(x)^2)/Sxx)
+
+ # El valor t del beta_j es dado por :
+ # (beta_j - beta_H0)/sqrt(var_beta)
+
+ # para slope beta_H0 = 0, la hipotesis nula
+
+ t_slope = (betas[2] - 0)/sqrt(var_slope)
+
+ # Para intercept
+
+ t_intercept = (betas[1] - 0)/sqrt(var_intercept)
+ # p value para ambos usando pt(t,n)
+
+ # p de slope, multiplicar por dos para hacerla two.tailed
+ # lower.tail = F y tomar valor absoluto de t_slope, dado que
+ # estamos calculando la probabilidad de que t_calculado < T de distribucion
+
+ 2*pt(abs(t_slope), df=n-2, lower.tail = F)
+
+ 2*pt(abs(t_intercept), df=n-2, lower.tail = F)
+
+ # comparar con calculado por funciones
+
+ summary(lm_model)
+
+\end{lstlisting}
+
+%%% -------------------------------------Bibliografía
+
+
+\bibliographystyle{abbrvnat} % or try abbrvnat or unsrtnat
+\bibliography{reg_bib}
+
+\end{document}
